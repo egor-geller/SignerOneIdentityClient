@@ -1,0 +1,50 @@
+﻿@page
+@using System.Web;
+@using Microsoft.Extensions.Configuration
+@using NLog;
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    
+    @if (Model.Token == null)
+    {
+        Logger logger = LogManager.GetCurrentClassLogger();
+
+        logger.Info($"IndexModel:OnGetLogin: Start Login");
+        var myConfig = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        string baseUrl = myConfig.GetValue<string>("BaseUrl");
+        string clientId = myConfig.GetValue<string>("ClientId");
+        string callbackUri = HttpUtility.UrlEncode(myConfig.GetValue<string>("CallabckUri"));
+
+        string authorizeUrl = $"{baseUrl}/connect/authorize?response_type=code&client_id={clientId}&redirect_uri={callbackUri}&scope=profile&state=123456";
+        
+        logger.Info($"IndexModel:OnGetLogin: Base url: {baseUrl}");
+        logger.Info($"IndexModel:OnGetLogin: Client ID: {clientId}");
+        logger.Info($"IndexModel:OnGetLogin: Callback URI: {callbackUri}");
+        logger.Info($"IndexModel:OnGetLogin: Authorize url: {authorizeUrl}");
+
+        var r = new RedirectResult(authorizeUrl);
+
+        Redirect(authorizeUrl);
+    }
+
+    @if (Model.Token != null) {
+
+        <div class="alert alert-success mt-4 text-wrap text-start" >
+            <script>
+                setInterval(() => {
+                    window.localStorage.setItem("comda_token", JSON.stringify(@Model.Token));
+                    window.close();
+                }, 100);
+            </script>
+                <ul>
+                    <li class="text-wrap text-break">
+                        אנא המתן
+                    </li>
+                </ul>
+        </div>
+    }
+</div>
